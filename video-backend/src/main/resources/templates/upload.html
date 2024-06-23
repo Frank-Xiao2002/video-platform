@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload - 上传</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            justify-content: center;
+            align-content: center;
+            margin: auto;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 5px;
+            max-width: 500px;
+            margin: auto;
+        }
+
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        input[type="submit"] {
+            background-color: #5C6BC0;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #7986CB;
+        }
+    </style>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <form action="#" method="post" onsubmit="return validateForm()">
+        <input type="file" name="" id="" required onchange="checkFileTypeSize()"><br>
+        <label for="filename">Filename: </label><input type="text" name="filename" id="filename" disabled><br>
+        <label for="title">Title: </label><input type="text" name="title" id="title" required><br>
+        <label for="description">Description: </label><input type="text" name="description" id="description"
+                                                             required><br>
+    </form>
+    <button onclick="uploadVideo()">Submit</button>
+    <a href="/">Go to Home page</a>
+    <script>
+        let url = '';
+        let token = '';
+        let assetId = '';
+
+        function prepare() {
+            checkFileTypeSize()
+            getUploadUrl()
+        }
+
+        function checkFileTypeSize() {
+            let file = document.querySelector("input[type=file]").files[0];
+            let filename = document.querySelector("#filename");
+            filename.value = file.name;
+            //file type must be video
+            if (!file.type.startsWith("video/")) {
+                alert("Please upload a video");
+                document.querySelector("input[type=file]").value = null;
+                filename.value = "";
+                throw new Error("Please upload a video");
+            }
+
+            //check file size, must smaller than 20mb
+            if (file.size > 20 * 1024 * 1024) {
+                alert("File size must smaller than 20MB");
+                document.querySelector("input[type=file]").value = null;
+                filename.value = "";
+                throw new Error("File size must smaller than 20MB");
+            }
+        }
+
+        async function getUploadUrl() {
+            const response = await axios.post('http://localhost:8080/video', {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                filename: document.getElementById('filename').value
+            })
+            // console.log(response.data)
+            url = response.data.upload_url
+            assetId = response.data.asset_id
+            // console.log(assetId)
+            // console.log(url)
+        }
+
+        function validateForm() {
+            // Get the values of the title and description inputs
+            var title = document.getElementById('title').value.trim();
+            var description = document.getElementById('description').value.trim();
+
+            // Check if the values are empty
+            if (title === '' || description === '') {
+                // If either value is empty, display an alert and prevent the form from being submitted
+                alert('Title and description must not be empty');
+                return false;
+            }
+
+            // If both values are not empty, allow the form to be submitted
+            return true;
+        }
+
+        function getToken() {
+            axios.get('http://localhost:8080/iam/token')
+                .then(response => {
+                    token = response.data
+                    // console.log(token)
+                })
+        }
+
+        async function uploadVideo() {
+            if (!validateForm())
+                return
+
+            await getUploadUrl()
+
+            getToken()
+
+            const file = document.querySelector("input[type=file]").files[0];
+
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'video/mp4',
+                    'X-Auth-Token': token
+                },
+                body: file // directly use the File object as the body
+            });
+
+            // console.log(assetId)
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            } else {
+                axios.post('video/confirm', {
+                    "asset_id": assetId,
+                    "description": document.getElementById('description').value,
+                    "title": document.getElementById('title').value
+
+                }).then(response => {
+                    // console.log(response.data)
+                    alert('Upload successful');
+                    window.location.href = '/';
+                }).catch(error => {
+                    console.error(error)
+                })
+            }
+
+        }
+    </script>
+</body>
+</html>

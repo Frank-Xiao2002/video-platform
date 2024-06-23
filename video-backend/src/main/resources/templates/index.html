@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome - 欢迎</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>😊Welcome to the video platform!😊</h1>
+    <hr>
+    <a th:href="@{login}">LOGIN</a>
+    <a th:href="@{logout}">LOGOUT</a>
+    <a th:href="@{upload}">Upload File</a>
+    <a th:href="@{register}">Register</a>
+    <a th:href="@{list}">My Videos</a>
+    <a th:href="@{watch}">Watch</a>
+    <script>
+        axios.defaults.baseURL = 'http://localhost:8080';
+    </script>
+</body>
+</html>

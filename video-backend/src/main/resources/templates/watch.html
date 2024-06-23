@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Watch - 观看视频</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <video onplay="addViewRecord()" th:src="${url}" controls autoplay></video>
+    <hr>
+    id:<span th:text="${video.id}" id="vid"></span><br>
+    description: <span th:text="${video.description}"></span><br>
+    likes: <span th:text="${video.likes}" id="likes"></span><br>
+    <button onclick="addLike()">LIKE</button>
+    <button onclick="reloadPage()">NEXT VIDEO</button>
+    <a th:href="@{/}">Home</a>
+
+
+    <script>
+        function reloadPage() {
+            window.location.reload();
+        }
+
+        function addLike() {
+            axios.post('http://localhost:8080/video/like', {
+                "videoId": document.getElementById("vid").innerText
+            }).then(response => {
+                console.log(response.data)
+                if (response.data.startsWith("Add")) {
+                    document.getElementById("likes").innerText = parseInt(document.getElementById("likes").innerText) + 1
+                    alert("You like this video!")
+                } else {
+                    document.getElementById("likes").innerText = parseInt(document.getElementById("likes").innerText) - 1
+                    alert("Remove like for this video")
+                }
+            }).catch(error => {
+                console.log(error)
+            })
+        }
+
+        async function addViewRecord() {
+            console.log("adding view record...")
+            await axios.post('http://localhost:8080/view-record', {
+                "videoId": document.getElementById("vid").innerText
+            })
+            console.log("view record added")
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+###
+GET http://localhost:8080/login
+
+###
+GET http://localhost:8080/logout
+
+###
+POST http://localhost:8080/user
+Content-Type: application/json
+
+{
+  "username": "1",
+  "password": "1"
+}
+###
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "123456"
+}
